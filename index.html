@@ -135,12 +135,6 @@
             outline: none;
         }
 
-        .input-group input[type="number"]::-webkit-inner-spin-button,
-        .input-group input[type="number"]::-webkit-outer-spin-button {
-            -webkit-appearance: none;
-            margin: 0;
-        }
-
         .btn {
             width: 100%;
             padding: 18px;
@@ -166,13 +160,11 @@
 
         .btn-primary:active:not(:disabled) {
             transform: translateY(1px);
-            box-shadow: 0 5px 10px rgba(95, 125, 240, 0.3);
         }
 
         .btn-primary:disabled {
             opacity: 0.5;
             cursor: not-allowed;
-            background: linear-gradient(135deg, #4a4f6b, #5f4f7a);
         }
 
         .btn-danger {
@@ -184,11 +176,6 @@
         .btn-danger:hover:not(:disabled) {
             background: #4f3d6b;
             transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(159, 95, 240, 0.2);
-        }
-
-        .btn-danger:active:not(:disabled) {
-            transform: translateY(1px);
         }
 
         .qris-container {
@@ -223,6 +210,17 @@
             margin: 0 auto;
             display: block;
             border-radius: 15px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .qris-image:hover {
+            transform: scale(1.02);
+        }
+
+        .qris-image.error {
+            border: 2px solid #ff8a9f;
+            padding: 20px;
         }
 
         .info-box {
@@ -374,7 +372,6 @@
         .receipt-header p {
             color: #5f7df0;
             font-weight: 700;
-            font-size: 1rem;
         }
 
         .receipt-content {
@@ -398,14 +395,12 @@
         .receipt-label {
             color: #64748b;
             font-weight: 500;
-            font-size: 0.9rem;
         }
 
         .receipt-value {
             color: #161f3f;
             font-weight: 700;
             font-family: monospace;
-            font-size: 0.95rem;
         }
 
         .receipt-total {
@@ -417,16 +412,9 @@
             margin: 15px 0;
         }
 
-        .receipt-total div:first-child {
-            font-size: 0.9rem;
-            opacity: 0.9;
-            margin-bottom: 5px;
-        }
-
         .receipt-total .amount {
             font-size: 2rem;
             font-weight: 800;
-            letter-spacing: 1px;
         }
 
         .receipt-footer {
@@ -447,35 +435,24 @@
             cursor: pointer;
             margin-top: 10px;
             font-size: 1rem;
-            transition: all 0.2s;
         }
 
-        .close-receipt:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(95, 125, 240, 0.3);
-        }
-
-        .close-receipt:active {
-            transform: translateY(1px);
-        }
-
-        .spam-info {
-            display: none;
-            text-align: center;
-            color: #ffd966;
-            margin: 10px 0;
-            padding: 10px;
-            background: rgba(255, 217, 102, 0.1);
+        .debug-info {
+            background: #0c1125;
             border-radius: 10px;
-            font-size: 0.9rem;
-            border: 1px solid #ffd966;
+            padding: 10px;
+            margin-top: 10px;
+            font-size: 0.8rem;
+            color: #8f9fd5;
+            border: 1px solid #1f274a;
+            display: none;
         }
 
-        .footer-note {
-            text-align: center;
-            margin-top: 20px;
-            color: #4a5a7a;
-            font-size: 0.8rem;
+        .debug-info pre {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            color: #a5c0ff;
+            margin-top: 5px;
         }
     </style>
 </head>
@@ -486,7 +463,7 @@
             <p>Ghanz625 • Auto Cancel 4 Menit</p>
         </div>
 
-        <!-- IP Badge untuk cek koneksi -->
+        <!-- IP Badge -->
         <div class="ip-badge" id="ipBadge">
             <span>🌐 Backend:</span>
             <strong id="backendIp">Checking connection...</strong>
@@ -504,14 +481,14 @@
         </button>
 
         <!-- Anti Spam Info -->
-        <div id="spamInfo" class="spam-info">
+        <div id="spamInfo" style="display: none; text-align: center; color: #ffd966; margin: 10px 0; padding: 10px; background: rgba(255, 217, 102, 0.1); border-radius: 10px;">
             ⚠️ TUNGGU 5 MENIT LAGI KARENA ADA TRANSAKSI YANG SEDANG BERJALAN
         </div>
 
-        <!-- Area QRIS (hidden) -->
+        <!-- Area QRIS -->
         <div id="qrisArea" style="display: none;">
             <div class="qris-container">
-                <img id="qrisImage" class="qris-image" src="" alt="QRIS">
+                <img id="qrisImage" class="qris-image" src="" alt="QRIS" onclick="enlargeQRIS()">
             </div>
 
             <!-- Timer -->
@@ -521,7 +498,7 @@
             <div class="timer-text" id="timerText">⏳ Sisa waktu: 4 menit 0 detik</div>
             <div class="warning-text">⚠️ QRIS akan otomatis batal jika tidak dibayar dalam 4 menit</div>
 
-            <!-- Status Badge -->
+            <!-- Status -->
             <div style="text-align: center;">
                 <span id="statusBadge" class="status-badge badge-pending">MENUNGGU PEMBAYARAN</span>
             </div>
@@ -550,6 +527,12 @@
             <button class="btn btn-danger" onclick="cancelTransaction()" id="btnCancel">
                 ❌ BATALKAN TRANSAKSI
             </button>
+
+            <!-- Debug Info (hidden by default) -->
+            <div id="debugInfo" class="debug-info">
+                <small>🔧 Debug Info:</small>
+                <pre id="debugContent"></pre>
+            </div>
         </div>
 
         <!-- Loading State -->
@@ -559,12 +542,12 @@
         </div>
 
         <!-- Footer -->
-        <div class="footer-note">
+        <div style="text-align: center; margin-top: 20px; color: #4a5a7a; font-size: 0.8rem;">
             ⏱️ Transaksi otomatis batal setelah 4 menit
         </div>
     </div>
 
-    <!-- Modal Struk Pembayaran -->
+    <!-- Modal Struk -->
     <div class="modal-overlay" id="receiptModal">
         <div class="receipt-modal">
             <div class="receipt-header">
@@ -617,25 +600,37 @@
     <div id="toast" class="toast"></div>
 
     <script>
-        // ========== KONFIGURASI BACKEND ==========
-        // GANTI DENGAN IP BACKEND ANDA
+        // ========== KONFIGURASI ==========
         const BACKEND_IP = '157.230.255.221';
         const BACKEND_PORT = '2003';
         
-        // Coba beberapa kemungkinan URL
-        const BACKEND_URLS = [
-            `https://${BACKEND_IP}:${BACKEND_PORT}`,  // HTTPS
-            `http://${BACKEND_IP}:${BACKEND_PORT}`,   // HTTP
-            `https://cors-anywhere.herokuapp.com/http://${BACKEND_IP}:${BACKEND_PORT}`, // CORS Proxy
-            `https://api.allorigins.win/raw?url=http://${BACKEND_IP}:${BACKEND_PORT}` // Alternative proxy
-        ];
-
-        // Endpoints berdasarkan response error Anda
-        const ENDPOINTS = {
-            create: '/api/qris/create',
-            status: '/api/qris/status/',
-            cancel: '/api/qris/cancel/',
-            health: '/health'
+        // Coba beberapa kemungkinan endpoint
+        const ENDPOINT_VARIANTS = {
+            create: [
+                '/api/qris/create',
+                '/api/create-qris',
+                '/qris/create',
+                '/create-qris',
+                '/api/transaction/create',
+                '/transaction/create'
+            ],
+            status: [
+                '/api/qris/status/',
+                '/api/status/',
+                '/qris/status/',
+                '/transaction/status/'
+            ],
+            cancel: [
+                '/api/qris/cancel/',
+                '/api/cancel/',
+                '/qris/cancel/',
+                '/transaction/cancel/'
+            ],
+            health: [
+                '/health',
+                '/api/health',
+                '/'
+            ]
         };
 
         // State
@@ -644,55 +639,119 @@
         let timerInterval = null;
         let isProcessing = false;
         let activeBackendUrl = null;
-        let connectionChecked = false;
+        let activeEndpoints = {
+            create: null,
+            status: null,
+            cancel: null,
+            health: null
+        };
+
+        // ========== CEK ENDPOINT ==========
+        async function findWorkingEndpoint(baseUrl, endpointType) {
+            for (const path of ENDPOINT_VARIANTS[endpointType]) {
+                try {
+                    const url = `${baseUrl}${path}`;
+                    console.log(`Mencoba ${endpointType}: ${url}`);
+                    
+                    const controller = new AbortController();
+                    const timeoutId = setTimeout(() => controller.abort(), 3000);
+                    
+                    // Untuk health/GET endpoints
+                    if (endpointType === 'health' || endpointType === 'status') {
+                        const response = await fetch(url, {
+                            method: 'GET',
+                            headers: { 'Accept': 'application/json' },
+                            signal: controller.signal
+                        });
+                        
+                        clearTimeout(timeoutId);
+                        
+                        if (response.ok) {
+                            console.log(`✅ ${endpointType} bekerja: ${path}`);
+                            return path;
+                        }
+                    } 
+                    // Untuk POST endpoints (coba OPTIONS dulu)
+                    else {
+                        const response = await fetch(url, {
+                            method: 'OPTIONS',
+                            headers: { 'Accept': 'application/json' },
+                            signal: controller.signal
+                        });
+                        
+                        clearTimeout(timeoutId);
+                        
+                        if (response.ok || response.status < 500) {
+                            console.log(`✅ ${endpointType} bekerja: ${path}`);
+                            return path;
+                        }
+                    }
+                } catch (e) {
+                    console.log(`${endpointType} ${path} gagal:`, e.message);
+                    continue;
+                }
+            }
+            return null;
+        }
 
         // ========== CEK KONEKSI BACKEND ==========
         async function checkBackend() {
             const ipBadge = document.getElementById('backendIp');
             const ipBadgeElement = document.getElementById('ipBadge');
             
-            ipBadge.textContent = 'Connecting...';
+            ipBadge.textContent = 'Mencoba koneksi...';
             
-            // Coba semua URL backend
-            for (const url of BACKEND_URLS) {
-                try {
-                    console.log(`Mencoba koneksi ke: ${url}${ENDPOINTS.health}`);
-                    
-                    const controller = new AbortController();
-                    const timeoutId = setTimeout(() => controller.abort(), 5000);
-                    
-                    const response = await fetch(`${url}${ENDPOINTS.health}`, {
-                        method: 'GET',
-                        headers: {
-                            'Accept': 'application/json'
-                        },
-                        signal: controller.signal
-                    });
-                    
-                    clearTimeout(timeoutId);
-                    
-                    if (response.ok) {
-                        const data = await response.json();
-                        activeBackendUrl = url;
-                        ipBadge.textContent = 'Connected ✓';
-                        ipBadgeElement.style.borderColor = '#7cf0b0';
-                        ipBadgeElement.style.background = '#1a3a2a';
-                        showToast('✅ Terhubung ke backend', 'success');
-                        connectionChecked = true;
-                        return;
-                    }
-                } catch (e) {
-                    console.log(`Gagal konek ke ${url}:`, e.message);
-                    continue;
-                }
+            // Coba HTTPS dulu
+            const baseUrl = `https://${BACKEND_IP}:${BACKEND_PORT}`;
+            
+            // Cari health endpoint yang bekerja
+            const healthPath = await findWorkingEndpoint(baseUrl, 'health');
+            
+            if (healthPath) {
+                activeBackendUrl = baseUrl;
+                activeEndpoints.health = healthPath;
+                
+                // Cari endpoint lainnya
+                activeEndpoints.create = await findWorkingEndpoint(baseUrl, 'create');
+                activeEndpoints.status = await findWorkingEndpoint(baseUrl, 'status');
+                activeEndpoints.cancel = await findWorkingEndpoint(baseUrl, 'cancel');
+                
+                ipBadge.textContent = 'Connected ✓';
+                ipBadgeElement.style.borderColor = '#7cf0b0';
+                ipBadgeElement.style.background = '#1a3a2a';
+                
+                let msg = '✅ Terhubung ke backend';
+                if (!activeEndpoints.create) msg = '⚠️ Create endpoint tidak ditemukan';
+                if (!activeEndpoints.status) msg = '⚠️ Status endpoint tidak ditemukan';
+                
+                showToast(msg, activeEndpoints.create ? 'success' : 'warning');
+                return;
             }
             
-            // Jika semua gagal
+            // Coba HTTP jika HTTPS gagal
+            const httpUrl = `http://${BACKEND_IP}:${BACKEND_PORT}`;
+            const httpHealthPath = await findWorkingEndpoint(httpUrl, 'health');
+            
+            if (httpHealthPath) {
+                activeBackendUrl = httpUrl;
+                activeEndpoints.health = httpHealthPath;
+                
+                activeEndpoints.create = await findWorkingEndpoint(httpUrl, 'create');
+                activeEndpoints.status = await findWorkingEndpoint(httpUrl, 'status');
+                activeEndpoints.cancel = await findWorkingEndpoint(httpUrl, 'cancel');
+                
+                ipBadge.textContent = 'HTTP Mode';
+                ipBadgeElement.style.borderColor = '#ffd966';
+                ipBadgeElement.style.background = '#3f3a1e';
+                
+                showToast('⚠️ Terhubung via HTTP (mixed content)', 'warning');
+                return;
+            }
+            
             ipBadge.textContent = 'Offline ✗';
             ipBadgeElement.style.borderColor = '#ff8a9f';
             ipBadgeElement.style.background = '#3f1e1e';
             showToast('❌ Tidak dapat terhubung ke backend', 'error');
-            connectionChecked = false;
         }
 
         // ========== CREATE QRIS ==========
@@ -708,8 +767,8 @@
                 return;
             }
 
-            if (!activeBackendUrl) {
-                showToast('❌ Backend tidak terhubung', 'error');
+            if (!activeBackendUrl || !activeEndpoints.create) {
+                showToast('❌ Backend tidak terhubung atau endpoint create tidak ditemukan', 'error');
                 await checkBackend();
                 return;
             }
@@ -731,7 +790,10 @@
             document.getElementById('spamInfo').style.display = 'none';
 
             try {
-                const response = await fetch(`${activeBackendUrl}${ENDPOINTS.create}`, {
+                const createUrl = `${activeBackendUrl}${activeEndpoints.create}`;
+                console.log('Create URL:', createUrl);
+                
+                const response = await fetch(createUrl, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -742,43 +804,79 @@
                     })
                 });
 
+                // Tampilkan debug info
+                document.getElementById('debugInfo').style.display = 'block';
+                document.getElementById('debugContent').textContent = 
+                    `Status: ${response.status}\nURL: ${createUrl}`;
+
                 if (!response.ok) {
-                    throw new Error(`HTTP Error: ${response.status}`);
+                    const errorText = await response.text();
+                    throw new Error(`HTTP ${response.status}: ${errorText.substring(0, 100)}`);
                 }
 
                 const result = await response.json();
+                console.log('Response:', result);
+                
+                // Update debug
+                document.getElementById('debugContent').textContent += 
+                    `\n\nResponse:\n${JSON.stringify(result, null, 2)}`;
 
-                if (result.success) {
-                    currentTransaction = result.data;
-                    
-                    // Update UI dengan data transaksi
-                    document.getElementById('qrisImage').src = result.data.qrImage;
-                    document.getElementById('trxId').textContent = result.data.transactionId;
-                    document.getElementById('uniqueCode').textContent = result.data.uniqueCode || '-';
-                    document.getElementById('displayNominal').textContent = result.data.amountFormatted;
-                    
-                    const now = new Date();
-                    document.getElementById('displayTime').textContent = now.toLocaleTimeString('id-ID');
-                    
-                    // Reset dan start timer
-                    resetTimer();
-                    document.getElementById('loadingArea').style.display = 'none';
-                    document.getElementById('qrisArea').style.display = 'block';
-                    
-                    showToast('✅ QRIS berhasil dibuat', 'success');
-                    
-                    // Start timer 4 menit
-                    startTimer(4 * 60);
-                    
-                    // Start polling status
-                    startPolling(result.data.transactionId);
+                // Handle berbagai format response
+                let transactionData = null;
+                
+                if (result.success && result.data) {
+                    transactionData = result.data;
+                } else if (result.data) {
+                    transactionData = result.data;
+                } else if (result.transactionId) {
+                    transactionData = result;
                 } else {
-                    throw new Error(result.message || 'Gagal membuat QRIS');
+                    transactionData = {
+                        transactionId: result.id || result.transaction_id || result.trxId || 'TRX-' + Date.now(),
+                        qrImage: result.qrImage || result.qr || result.qr_code || result.imageUrl,
+                        amountFormatted: result.amountFormatted || `Rp ${new Intl.NumberFormat('id-ID').format(amount)}`,
+                        uniqueCode: result.uniqueCode || result.unique_code || result.kodeUnik || Math.floor(Math.random() * 900 + 100).toString()
+                    };
                 }
+
+                if (!transactionData.qrImage) {
+                    throw new Error('QR Image tidak ditemukan dalam response');
+                }
+
+                currentTransaction = transactionData;
+                
+                // Update UI
+                document.getElementById('qrisImage').src = transactionData.qrImage;
+                document.getElementById('trxId').textContent = transactionData.transactionId || '-';
+                document.getElementById('uniqueCode').textContent = transactionData.uniqueCode || '-';
+                document.getElementById('displayNominal').textContent = transactionData.amountFormatted || `Rp ${new Intl.NumberFormat('id-ID').format(amount)}`;
+                
+                const now = new Date();
+                document.getElementById('displayTime').textContent = now.toLocaleTimeString('id-ID');
+                
+                // Reset dan start timer
+                resetTimer();
+                document.getElementById('loadingArea').style.display = 'none';
+                document.getElementById('qrisArea').style.display = 'block';
+                
+                showToast('✅ QRIS berhasil dibuat', 'success');
+                
+                // Start timer 4 menit
+                startTimer(4 * 60);
+                
+                // Start polling jika ada status endpoint
+                if (activeEndpoints.status) {
+                    startPolling(transactionData.transactionId);
+                } else {
+                    showToast('⚠️ Status endpoint tidak ditemukan, tidak bisa auto-update', 'warning');
+                }
+                
             } catch (error) {
                 showToast('Error: ' + error.message, 'error');
                 console.error('Create QRIS Error:', error);
                 document.getElementById('loadingArea').style.display = 'none';
+                document.getElementById('debugInfo').style.display = 'block';
+                document.getElementById('debugContent').textContent = error.message;
             } finally {
                 document.getElementById('btnCreate').disabled = false;
                 document.getElementById('btnCreate').textContent = '🔷 BUAT QRIS';
@@ -818,11 +916,7 @@
             document.getElementById('timerText').textContent = 
                 `⏳ Sisa waktu: ${minutes} menit ${seconds.toString().padStart(2, '0')} detik`;
             
-            if (timeLeft < 60) {
-                document.getElementById('timerText').style.color = '#ff8a9f';
-            } else {
-                document.getElementById('timerText').style.color = '#ffd966';
-            }
+            document.getElementById('timerText').style.color = timeLeft < 60 ? '#ff8a9f' : '#ffd966';
         }
 
         function resetTimer() {
@@ -831,31 +925,25 @@
                 timerInterval = null;
             }
             document.getElementById('timerProgress').style.width = '100%';
-            document.getElementById('timerText').style.color = '#ffd966';
         }
 
         // ========== AUTO CANCEL ==========
         async function autoCancelTransaction() {
-            if (!currentTransaction || !activeBackendUrl) return;
+            if (!currentTransaction || !activeBackendUrl || !activeEndpoints.cancel) return;
 
             showToast('⏰ Waktu habis, transaksi otomatis dibatalkan', 'warning');
 
             try {
-                await fetch(`${activeBackendUrl}${ENDPOINTS.cancel}${currentTransaction.transactionId}`, {
-                    method: 'POST',
-                    headers: {
-                        'Accept': 'application/json'
-                    }
+                await fetch(`${activeBackendUrl}${activeEndpoints.cancel}${currentTransaction.transactionId}`, {
+                    method: 'POST'
                 });
             } catch (error) {
                 console.log('Auto cancel error:', error);
             }
 
-            // Update status
             document.getElementById('statusBadge').textContent = 'EXPIRED';
             document.getElementById('statusBadge').className = 'status-badge badge-expired';
             
-            // Reset form setelah 3 detik
             setTimeout(() => {
                 resetForm();
             }, 3000);
@@ -866,59 +954,56 @@
             }
         }
 
-        // ========== POLLING STATUS ==========
+        // ========== POLLING ==========
         function startPolling(transactionId) {
             if (pollingInterval) {
                 clearInterval(pollingInterval);
             }
 
             pollingInterval = setInterval(async () => {
-                if (!currentTransaction || !activeBackendUrl) return;
+                if (!currentTransaction || !activeBackendUrl || !activeEndpoints.status) return;
                 
                 try {
-                    const response = await fetch(`${activeBackendUrl}${ENDPOINTS.status}${transactionId}`, {
-                        headers: {
-                            'Accept': 'application/json'
-                        }
-                    });
+                    const response = await fetch(`${activeBackendUrl}${activeEndpoints.status}${transactionId}`);
                     
                     if (!response.ok) return;
 
                     const result = await response.json();
 
-                    if (result.success) {
-                        const status = result.data.status;
+                    // Handle berbagai format response status
+                    let status = null;
+                    if (result.data && result.data.status) {
+                        status = result.data.status;
+                    } else if (result.status) {
+                        status = result.status;
+                    } else if (result.data && result.data.paid) {
+                        status = result.data.paid ? 'PAID' : 'PENDING';
+                    }
+                    
+                    if (status === 'PAID' || status === 'SUCCESS' || status === 'LUNAS' || status === true) {
+                        clearInterval(pollingInterval);
+                        pollingInterval = null;
+                        clearInterval(timerInterval);
+                        timerInterval = null;
                         
-                        if (status === 'PAID' || status === 'SUCCESS' || status === 'LUNAS') {
-                            // Pembayaran sukses
-                            clearInterval(pollingInterval);
-                            pollingInterval = null;
-                            clearInterval(timerInterval);
-                            timerInterval = null;
-                            
-                            // Update badge
-                            document.getElementById('statusBadge').textContent = 'LUNAS';
-                            document.getElementById('statusBadge').className = 'status-badge badge-success';
-                            
-                            // Tampilkan struk
-                            showReceipt(currentTransaction);
-                            showToast('✅ Pembayaran diterima!', 'success');
-                            
-                            // Reset setelah 10 detik
-                            setTimeout(() => {
-                                resetForm();
-                            }, 10000);
-                        }
-                        else if (status === 'CANCELLED' || status === 'EXPIRED' || status === 'BATAL') {
-                            // Transaksi dibatalkan
-                            clearInterval(pollingInterval);
-                            pollingInterval = null;
-                            clearInterval(timerInterval);
-                            timerInterval = null;
-                            
-                            showToast('⏰ Transaksi ' + status.toLowerCase(), 'warning');
+                        document.getElementById('statusBadge').textContent = 'LUNAS';
+                        document.getElementById('statusBadge').className = 'status-badge badge-success';
+                        
+                        showReceipt(currentTransaction);
+                        showToast('✅ Pembayaran diterima!', 'success');
+                        
+                        setTimeout(() => {
                             resetForm();
-                        }
+                        }, 10000);
+                    }
+                    else if (status === 'CANCELLED' || status === 'EXPIRED' || status === 'BATAL') {
+                        clearInterval(pollingInterval);
+                        pollingInterval = null;
+                        clearInterval(timerInterval);
+                        timerInterval = null;
+                        
+                        showToast('⏰ Transaksi ' + status.toLowerCase(), 'warning');
+                        resetForm();
                     }
                 } catch (error) {
                     console.log('Polling error:', error);
@@ -928,37 +1013,38 @@
 
         // ========== CANCEL TRANSACTION ==========
         async function cancelTransaction() {
-            if (!currentTransaction || !activeBackendUrl) return;
+            if (!currentTransaction || !activeBackendUrl || !activeEndpoints.cancel) return;
 
             if (!confirm('Batalkan transaksi ini?')) return;
 
             try {
-                const response = await fetch(`${activeBackendUrl}${ENDPOINTS.cancel}${currentTransaction.transactionId}`, {
-                    method: 'POST',
-                    headers: {
-                        'Accept': 'application/json'
-                    }
+                await fetch(`${activeBackendUrl}${activeEndpoints.cancel}${currentTransaction.transactionId}`, {
+                    method: 'POST'
                 });
 
-                const result = await response.json();
-
-                if (result.success) {
-                    showToast('✅ Transaksi dibatalkan', 'success');
-                    
-                    if (pollingInterval) {
-                        clearInterval(pollingInterval);
-                        pollingInterval = null;
-                    }
-                    
-                    if (timerInterval) {
-                        clearInterval(timerInterval);
-                        timerInterval = null;
-                    }
-                    
-                    resetForm();
+                showToast('✅ Transaksi dibatalkan', 'success');
+                
+                if (pollingInterval) {
+                    clearInterval(pollingInterval);
+                    pollingInterval = null;
                 }
+                
+                if (timerInterval) {
+                    clearInterval(timerInterval);
+                    timerInterval = null;
+                }
+                
+                resetForm();
             } catch (error) {
                 showToast('Error: ' + error.message, 'error');
+            }
+        }
+
+        // ========== ENLARGE QRIS ==========
+        function enlargeQRIS() {
+            const qrisImg = document.getElementById('qrisImage');
+            if (qrisImg.src) {
+                window.open(qrisImg.src, '_blank');
             }
         }
 
@@ -973,13 +1059,9 @@
                 month: 'long', 
                 year: 'numeric' 
             });
-            const timeStr = now.toLocaleTimeString('id-ID', {
-                hour: '2-digit',
-                minute: '2-digit',
-                second: '2-digit'
-            });
+            const timeStr = now.toLocaleTimeString('id-ID');
             
-            document.getElementById('receiptTrxId').textContent = transaction.transactionId;
+            document.getElementById('receiptTrxId').textContent = transaction.transactionId || '-';
             document.getElementById('receiptDate').textContent = dateStr;
             document.getElementById('receiptTime').textContent = timeStr;
             document.getElementById('receiptUnique').textContent = transaction.uniqueCode || '-';
@@ -1001,6 +1083,7 @@
             document.getElementById('statusBadge').className = 'status-badge badge-pending';
             document.getElementById('spamInfo').style.display = 'none';
             document.getElementById('timerProgress').style.width = '100%';
+            document.getElementById('debugInfo').style.display = 'none';
             
             currentTransaction = null;
             isProcessing = false;
@@ -1022,20 +1105,16 @@
             toast.textContent = message;
             toast.style.display = 'block';
             
-            // Warna berdasarkan type
-            if (type === 'success') {
-                toast.style.background = '#14452f';
-                toast.style.borderColor = '#7ae0a0';
-            } else if (type === 'error') {
-                toast.style.background = '#3f1e1e';
-                toast.style.borderColor = '#ff8a9f';
-            } else if (type === 'warning') {
-                toast.style.background = '#3f3a1e';
-                toast.style.borderColor = '#ffd966';
-            } else {
-                toast.style.background = '#1e2a4a';
-                toast.style.borderColor = '#5f7eff';
-            }
+            const colors = {
+                success: { bg: '#14452f', border: '#7ae0a0' },
+                error: { bg: '#3f1e1e', border: '#ff8a9f' },
+                warning: { bg: '#3f3a1e', border: '#ffd966' },
+                info: { bg: '#1e2a4a', border: '#5f7eff' }
+            };
+            
+            const color = colors[type] || colors.info;
+            toast.style.background = color.bg;
+            toast.style.borderColor = color.border;
             
             setTimeout(() => {
                 toast.style.display = 'none';
@@ -1044,33 +1123,19 @@
 
         // ========== INIT ==========
         document.addEventListener('DOMContentLoaded', () => {
-            // Cek koneksi backend
             checkBackend();
-            
-            // Cek koneksi setiap 30 detik
             setInterval(checkBackend, 30000);
             
-            // Validasi input minimal 2000
             document.getElementById('amountInput').addEventListener('input', function() {
-                if (this.value < 2000) {
-                    this.style.borderColor = '#ff8a9f';
-                } else {
-                    this.style.borderColor = '#29355f';
-                }
+                this.style.borderColor = this.value < 2000 ? '#ff8a9f' : '#29355f';
             });
             
-            // Tutup modal jika klik di luar
-            document.getElementById('receiptModal').addEventListener('click', function(e) {
-                if (e.target === this) {
-                    closeReceipt();
-                }
-            });
-            
-            // Enter key untuk submit
             document.getElementById('amountInput').addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') {
-                    createQRIS();
-                }
+                if (e.key === 'Enter') createQRIS();
+            });
+            
+            document.getElementById('receiptModal').addEventListener('click', function(e) {
+                if (e.target === this) closeReceipt();
             });
         });
     </script>
