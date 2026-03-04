@@ -48,59 +48,23 @@
             font-size: 0.9rem;
         }
 
-        .ip-badge {
+        .server-badge {
             background: #1a2545;
             border-radius: 50px;
             padding: 8px 16px;
-            display: inline-block;
-            border: 1px solid #3f56a0;
             margin-bottom: 20px;
-            width: 100%;
             text-align: center;
+            border: 1px solid #3f56a0;
         }
 
-        .ip-badge span {
-            color: #6b7ec7;
-        }
-
-        .ip-badge strong {
+        .server-badge span {
             color: #a5c0ff;
-            margin-left: 8px;
-            font-family: monospace;
-        }
-
-        .timer-bar {
-            background: #0c1125;
-            border-radius: 10px;
-            height: 6px;
-            width: 100%;
-            margin: 10px 0;
-            overflow: hidden;
-        }
-
-        .timer-progress {
-            height: 100%;
-            width: 100%;
-            background: linear-gradient(90deg, #5f7df0, #9d5fd8);
-            transition: width 1s linear;
-        }
-
-        .timer-text {
-            text-align: center;
-            color: #ffd966;
             font-size: 0.9rem;
-            margin: 5px 0;
-            font-weight: 600;
         }
 
-        .warning-text {
-            color: #ff8a9f;
-            font-size: 0.85rem;
-            text-align: center;
-            margin: 5px 0;
-            background: rgba(255, 138, 159, 0.1);
-            padding: 8px;
-            border-radius: 10px;
+        .server-badge strong {
+            color: #7ae0a0;
+            margin-left: 5px;
         }
 
         .input-group {
@@ -135,6 +99,12 @@
             outline: none;
         }
 
+        .input-group input[type="number"]::-webkit-inner-spin-button,
+        .input-group input[type="number"]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
         .btn {
             width: 100%;
             padding: 18px;
@@ -165,6 +135,7 @@
         .btn-primary:disabled {
             opacity: 0.5;
             cursor: not-allowed;
+            background: linear-gradient(135deg, #4a4f6b, #5f4f7a);
         }
 
         .btn-danger {
@@ -176,6 +147,15 @@
         .btn-danger:hover:not(:disabled) {
             background: #4f3d6b;
             transform: translateY(-2px);
+        }
+
+        .btn-danger:active:not(:disabled) {
+            transform: translateY(1px);
+        }
+
+        .btn-danger:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
         }
 
         .qris-container {
@@ -218,9 +198,38 @@
             transform: scale(1.02);
         }
 
-        .qris-image.error {
-            border: 2px solid #ff8a9f;
-            padding: 20px;
+        .timer-bar {
+            background: #0c1125;
+            border-radius: 10px;
+            height: 6px;
+            width: 100%;
+            margin: 10px 0;
+            overflow: hidden;
+        }
+
+        .timer-progress {
+            height: 100%;
+            width: 100%;
+            background: linear-gradient(90deg, #5f7df0, #9d5fd8);
+            transition: width 1s linear;
+        }
+
+        .timer-text {
+            text-align: center;
+            color: #ffd966;
+            font-size: 0.9rem;
+            margin: 5px 0;
+            font-weight: 600;
+        }
+
+        .warning-text {
+            color: #ff8a9f;
+            font-size: 0.85rem;
+            text-align: center;
+            margin: 5px 0;
+            background: rgba(255, 138, 159, 0.1);
+            padding: 8px;
+            border-radius: 10px;
         }
 
         .info-box {
@@ -435,24 +444,45 @@
             cursor: pointer;
             margin-top: 10px;
             font-size: 1rem;
+            transition: all 0.2s;
         }
 
-        .debug-info {
+        .close-receipt:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(95, 125, 240, 0.3);
+        }
+
+        .url-input {
+            width: 100%;
+            padding: 10px 15px;
             background: #0c1125;
+            border: 1px solid #3f56a0;
             border-radius: 10px;
-            padding: 10px;
-            margin-top: 10px;
-            font-size: 0.8rem;
-            color: #8f9fd5;
-            border: 1px solid #1f274a;
-            display: none;
+            color: white;
+            font-size: 0.9rem;
+            margin-top: 5px;
+            outline: none;
         }
 
-        .debug-info pre {
-            white-space: pre-wrap;
-            word-wrap: break-word;
-            color: #a5c0ff;
-            margin-top: 5px;
+        .url-input:focus {
+            border-color: #5f7df0;
+        }
+
+        .connection-status {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #ffd966;
+            margin-left: 5px;
+        }
+
+        .connection-status.connected {
+            background: #7ae0a0;
+        }
+
+        .connection-status.disconnected {
+            background: #ff8a9f;
         }
     </style>
 </head>
@@ -463,10 +493,17 @@
             <p>Ghanz625 • Auto Cancel 4 Menit</p>
         </div>
 
-        <!-- IP Badge -->
-        <div class="ip-badge" id="ipBadge">
-            <span>🌐 Backend:</span>
-            <strong id="backendIp">Checking connection...</strong>
+        <!-- Backend URL Input -->
+        <div class="server-badge">
+            <span>🔌 Backend Server:</span>
+            <input type="text" id="backendUrl" class="url-input" 
+                   placeholder="http://ip-server:2003" 
+                   value="http://localhost:2003">
+            <div style="margin-top: 8px; font-size: 0.8rem;">
+                <span id="connectionText">Status: </span>
+                <span id="connectionStatus" class="connection-status"></span>
+                <span id="connectionMessage" style="color: #8f9fd5; margin-left: 5px;">Belum dicek</span>
+            </div>
         </div>
 
         <!-- Input nominal -->
@@ -527,12 +564,6 @@
             <button class="btn btn-danger" onclick="cancelTransaction()" id="btnCancel">
                 ❌ BATALKAN TRANSAKSI
             </button>
-
-            <!-- Debug Info (hidden by default) -->
-            <div id="debugInfo" class="debug-info">
-                <small>🔧 Debug Info:</small>
-                <pre id="debugContent"></pre>
-            </div>
         </div>
 
         <!-- Loading State -->
@@ -600,158 +631,37 @@
     <div id="toast" class="toast"></div>
 
     <script>
-        // ========== KONFIGURASI ==========
-        const BACKEND_IP = '157.230.255.221';
-        const BACKEND_PORT = '2003';
-        
-        // Coba beberapa kemungkinan endpoint
-        const ENDPOINT_VARIANTS = {
-            create: [
-                '/api/qris/create',
-                '/api/create-qris',
-                '/qris/create',
-                '/create-qris',
-                '/api/transaction/create',
-                '/transaction/create'
-            ],
-            status: [
-                '/api/qris/status/',
-                '/api/status/',
-                '/qris/status/',
-                '/transaction/status/'
-            ],
-            cancel: [
-                '/api/qris/cancel/',
-                '/api/cancel/',
-                '/qris/cancel/',
-                '/transaction/cancel/'
-            ],
-            health: [
-                '/health',
-                '/api/health',
-                '/'
-            ]
-        };
-
         // State
         let currentTransaction = null;
         let pollingInterval = null;
         let timerInterval = null;
         let isProcessing = false;
-        let activeBackendUrl = null;
-        let activeEndpoints = {
-            create: null,
-            status: null,
-            cancel: null,
-            health: null
-        };
+        let timeLeft = 240;
 
-        // ========== CEK ENDPOINT ==========
-        async function findWorkingEndpoint(baseUrl, endpointType) {
-            for (const path of ENDPOINT_VARIANTS[endpointType]) {
-                try {
-                    const url = `${baseUrl}${path}`;
-                    console.log(`Mencoba ${endpointType}: ${url}`);
-                    
-                    const controller = new AbortController();
-                    const timeoutId = setTimeout(() => controller.abort(), 3000);
-                    
-                    // Untuk health/GET endpoints
-                    if (endpointType === 'health' || endpointType === 'status') {
-                        const response = await fetch(url, {
-                            method: 'GET',
-                            headers: { 'Accept': 'application/json' },
-                            signal: controller.signal
-                        });
-                        
-                        clearTimeout(timeoutId);
-                        
-                        if (response.ok) {
-                            console.log(`✅ ${endpointType} bekerja: ${path}`);
-                            return path;
-                        }
-                    } 
-                    // Untuk POST endpoints (coba OPTIONS dulu)
-                    else {
-                        const response = await fetch(url, {
-                            method: 'OPTIONS',
-                            headers: { 'Accept': 'application/json' },
-                            signal: controller.signal
-                        });
-                        
-                        clearTimeout(timeoutId);
-                        
-                        if (response.ok || response.status < 500) {
-                            console.log(`✅ ${endpointType} bekerja: ${path}`);
-                            return path;
-                        }
-                    }
-                } catch (e) {
-                    console.log(`${endpointType} ${path} gagal:`, e.message);
-                    continue;
+        // ========== CEK KONEKSI OTOMATIS ==========
+        async function checkConnection() {
+            const url = document.getElementById('backendUrl').value;
+            const statusDot = document.getElementById('connectionStatus');
+            const statusMsg = document.getElementById('connectionMessage');
+            
+            try {
+                const response = await fetch(url + '/health', {
+                    method: 'GET',
+                    headers: { 'Accept': 'application/json' }
+                });
+                
+                if (response.ok) {
+                    statusDot.className = 'connection-status connected';
+                    statusMsg.textContent = 'Terhubung';
+                    statusMsg.style.color = '#7ae0a0';
+                } else {
+                    throw new Error('Gagal');
                 }
+            } catch (error) {
+                statusDot.className = 'connection-status disconnected';
+                statusMsg.textContent = 'Tidak terhubung';
+                statusMsg.style.color = '#ff8a9f';
             }
-            return null;
-        }
-
-        // ========== CEK KONEKSI BACKEND ==========
-        async function checkBackend() {
-            const ipBadge = document.getElementById('backendIp');
-            const ipBadgeElement = document.getElementById('ipBadge');
-            
-            ipBadge.textContent = 'Mencoba koneksi...';
-            
-            // Coba HTTPS dulu
-            const baseUrl = `https://${BACKEND_IP}:${BACKEND_PORT}`;
-            
-            // Cari health endpoint yang bekerja
-            const healthPath = await findWorkingEndpoint(baseUrl, 'health');
-            
-            if (healthPath) {
-                activeBackendUrl = baseUrl;
-                activeEndpoints.health = healthPath;
-                
-                // Cari endpoint lainnya
-                activeEndpoints.create = await findWorkingEndpoint(baseUrl, 'create');
-                activeEndpoints.status = await findWorkingEndpoint(baseUrl, 'status');
-                activeEndpoints.cancel = await findWorkingEndpoint(baseUrl, 'cancel');
-                
-                ipBadge.textContent = 'Connected ✓';
-                ipBadgeElement.style.borderColor = '#7cf0b0';
-                ipBadgeElement.style.background = '#1a3a2a';
-                
-                let msg = '✅ Terhubung ke backend';
-                if (!activeEndpoints.create) msg = '⚠️ Create endpoint tidak ditemukan';
-                if (!activeEndpoints.status) msg = '⚠️ Status endpoint tidak ditemukan';
-                
-                showToast(msg, activeEndpoints.create ? 'success' : 'warning');
-                return;
-            }
-            
-            // Coba HTTP jika HTTPS gagal
-            const httpUrl = `http://${BACKEND_IP}:${BACKEND_PORT}`;
-            const httpHealthPath = await findWorkingEndpoint(httpUrl, 'health');
-            
-            if (httpHealthPath) {
-                activeBackendUrl = httpUrl;
-                activeEndpoints.health = httpHealthPath;
-                
-                activeEndpoints.create = await findWorkingEndpoint(httpUrl, 'create');
-                activeEndpoints.status = await findWorkingEndpoint(httpUrl, 'status');
-                activeEndpoints.cancel = await findWorkingEndpoint(httpUrl, 'cancel');
-                
-                ipBadge.textContent = 'HTTP Mode';
-                ipBadgeElement.style.borderColor = '#ffd966';
-                ipBadgeElement.style.background = '#3f3a1e';
-                
-                showToast('⚠️ Terhubung via HTTP (mixed content)', 'warning');
-                return;
-            }
-            
-            ipBadge.textContent = 'Offline ✗';
-            ipBadgeElement.style.borderColor = '#ff8a9f';
-            ipBadgeElement.style.background = '#3f1e1e';
-            showToast('❌ Tidak dapat terhubung ke backend', 'error');
         }
 
         // ========== CREATE QRIS ==========
@@ -767,13 +677,8 @@
                 return;
             }
 
-            if (!activeBackendUrl || !activeEndpoints.create) {
-                showToast('❌ Backend tidak terhubung atau endpoint create tidak ditemukan', 'error');
-                await checkBackend();
-                return;
-            }
-
             const amount = document.getElementById('amountInput').value;
+            const backendUrl = document.getElementById('backendUrl').value;
             
             if (!amount || amount < 2000) {
                 showToast('Minimal nominal Rp2.000', 'error');
@@ -790,10 +695,7 @@
             document.getElementById('spamInfo').style.display = 'none';
 
             try {
-                const createUrl = `${activeBackendUrl}${activeEndpoints.create}`;
-                console.log('Create URL:', createUrl);
-                
-                const response = await fetch(createUrl, {
+                const response = await fetch(backendUrl + '/api/qris/create', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -804,79 +706,43 @@
                     })
                 });
 
-                // Tampilkan debug info
-                document.getElementById('debugInfo').style.display = 'block';
-                document.getElementById('debugContent').textContent = 
-                    `Status: ${response.status}\nURL: ${createUrl}`;
-
                 if (!response.ok) {
-                    const errorText = await response.text();
-                    throw new Error(`HTTP ${response.status}: ${errorText.substring(0, 100)}`);
+                    throw new Error('HTTP ' + response.status);
                 }
 
                 const result = await response.json();
-                console.log('Response:', result);
-                
-                // Update debug
-                document.getElementById('debugContent').textContent += 
-                    `\n\nResponse:\n${JSON.stringify(result, null, 2)}`;
 
-                // Handle berbagai format response
-                let transactionData = null;
-                
-                if (result.success && result.data) {
-                    transactionData = result.data;
-                } else if (result.data) {
-                    transactionData = result.data;
-                } else if (result.transactionId) {
-                    transactionData = result;
+                if (result.success) {
+                    currentTransaction = result.data;
+                    
+                    // Update UI
+                    document.getElementById('qrisImage').src = result.data.qrImage;
+                    document.getElementById('trxId').textContent = result.data.transactionId;
+                    document.getElementById('uniqueCode').textContent = result.data.uniqueCode;
+                    document.getElementById('displayNominal').textContent = result.data.amountFormatted;
+                    
+                    const now = new Date();
+                    document.getElementById('displayTime').textContent = now.toLocaleTimeString('id-ID');
+                    
+                    // Reset dan start timer
+                    resetTimer();
+                    document.getElementById('loadingArea').style.display = 'none';
+                    document.getElementById('qrisArea').style.display = 'block';
+                    
+                    showToast('✅ QRIS berhasil dibuat', 'success');
+                    
+                    // Start timer 4 menit
+                    startTimer(4 * 60);
+                    
+                    // Start polling status
+                    startPolling(result.data.transactionId, backendUrl);
                 } else {
-                    transactionData = {
-                        transactionId: result.id || result.transaction_id || result.trxId || 'TRX-' + Date.now(),
-                        qrImage: result.qrImage || result.qr || result.qr_code || result.imageUrl,
-                        amountFormatted: result.amountFormatted || `Rp ${new Intl.NumberFormat('id-ID').format(amount)}`,
-                        uniqueCode: result.uniqueCode || result.unique_code || result.kodeUnik || Math.floor(Math.random() * 900 + 100).toString()
-                    };
+                    throw new Error(result.message || 'Gagal membuat QRIS');
                 }
-
-                if (!transactionData.qrImage) {
-                    throw new Error('QR Image tidak ditemukan dalam response');
-                }
-
-                currentTransaction = transactionData;
-                
-                // Update UI
-                document.getElementById('qrisImage').src = transactionData.qrImage;
-                document.getElementById('trxId').textContent = transactionData.transactionId || '-';
-                document.getElementById('uniqueCode').textContent = transactionData.uniqueCode || '-';
-                document.getElementById('displayNominal').textContent = transactionData.amountFormatted || `Rp ${new Intl.NumberFormat('id-ID').format(amount)}`;
-                
-                const now = new Date();
-                document.getElementById('displayTime').textContent = now.toLocaleTimeString('id-ID');
-                
-                // Reset dan start timer
-                resetTimer();
-                document.getElementById('loadingArea').style.display = 'none';
-                document.getElementById('qrisArea').style.display = 'block';
-                
-                showToast('✅ QRIS berhasil dibuat', 'success');
-                
-                // Start timer 4 menit
-                startTimer(4 * 60);
-                
-                // Start polling jika ada status endpoint
-                if (activeEndpoints.status) {
-                    startPolling(transactionData.transactionId);
-                } else {
-                    showToast('⚠️ Status endpoint tidak ditemukan, tidak bisa auto-update', 'warning');
-                }
-                
             } catch (error) {
                 showToast('Error: ' + error.message, 'error');
                 console.error('Create QRIS Error:', error);
                 document.getElementById('loadingArea').style.display = 'none';
-                document.getElementById('debugInfo').style.display = 'block';
-                document.getElementById('debugContent').textContent = error.message;
             } finally {
                 document.getElementById('btnCreate').disabled = false;
                 document.getElementById('btnCreate').textContent = '🔷 BUAT QRIS';
@@ -885,8 +751,6 @@
         }
 
         // ========== TIMER ==========
-        let timeLeft = 240;
-
         function startTimer(seconds) {
             timeLeft = seconds;
             updateTimerDisplay();
@@ -914,7 +778,7 @@
             const minutes = Math.floor(timeLeft / 60);
             const seconds = timeLeft % 60;
             document.getElementById('timerText').textContent = 
-                `⏳ Sisa waktu: ${minutes} menit ${seconds.toString().padStart(2, '0')} detik`;
+                '⏳ Sisa waktu: ' + minutes + ' menit ' + seconds.toString().padStart(2, '0') + ' detik';
             
             document.getElementById('timerText').style.color = timeLeft < 60 ? '#ff8a9f' : '#ffd966';
         }
@@ -925,21 +789,14 @@
                 timerInterval = null;
             }
             document.getElementById('timerProgress').style.width = '100%';
+            document.getElementById('timerText').style.color = '#ffd966';
         }
 
         // ========== AUTO CANCEL ==========
         async function autoCancelTransaction() {
-            if (!currentTransaction || !activeBackendUrl || !activeEndpoints.cancel) return;
+            if (!currentTransaction) return;
 
             showToast('⏰ Waktu habis, transaksi otomatis dibatalkan', 'warning');
-
-            try {
-                await fetch(`${activeBackendUrl}${activeEndpoints.cancel}${currentTransaction.transactionId}`, {
-                    method: 'POST'
-                });
-            } catch (error) {
-                console.log('Auto cancel error:', error);
-            }
 
             document.getElementById('statusBadge').textContent = 'EXPIRED';
             document.getElementById('statusBadge').className = 'status-badge badge-expired';
@@ -955,55 +812,49 @@
         }
 
         // ========== POLLING ==========
-        function startPolling(transactionId) {
+        function startPolling(transactionId, backendUrl) {
             if (pollingInterval) {
                 clearInterval(pollingInterval);
             }
 
             pollingInterval = setInterval(async () => {
-                if (!currentTransaction || !activeBackendUrl || !activeEndpoints.status) return;
+                if (!currentTransaction) return;
                 
                 try {
-                    const response = await fetch(`${activeBackendUrl}${activeEndpoints.status}${transactionId}`);
+                    const response = await fetch(backendUrl + '/api/qris/status/' + transactionId);
                     
                     if (!response.ok) return;
 
                     const result = await response.json();
 
-                    // Handle berbagai format response status
-                    let status = null;
-                    if (result.data && result.data.status) {
-                        status = result.data.status;
-                    } else if (result.status) {
-                        status = result.status;
-                    } else if (result.data && result.data.paid) {
-                        status = result.data.paid ? 'PAID' : 'PENDING';
-                    }
-                    
-                    if (status === 'PAID' || status === 'SUCCESS' || status === 'LUNAS' || status === true) {
-                        clearInterval(pollingInterval);
-                        pollingInterval = null;
-                        clearInterval(timerInterval);
-                        timerInterval = null;
+                    if (result.success) {
+                        const status = result.data.status;
                         
-                        document.getElementById('statusBadge').textContent = 'LUNAS';
-                        document.getElementById('statusBadge').className = 'status-badge badge-success';
-                        
-                        showReceipt(currentTransaction);
-                        showToast('✅ Pembayaran diterima!', 'success');
-                        
-                        setTimeout(() => {
+                        if (status === 'PAID') {
+                            clearInterval(pollingInterval);
+                            pollingInterval = null;
+                            clearInterval(timerInterval);
+                            timerInterval = null;
+                            
+                            document.getElementById('statusBadge').textContent = 'LUNAS';
+                            document.getElementById('statusBadge').className = 'status-badge badge-success';
+                            
+                            showReceipt(currentTransaction);
+                            showToast('✅ Pembayaran diterima!', 'success');
+                            
+                            setTimeout(() => {
+                                resetForm();
+                            }, 10000);
+                        }
+                        else if (status === 'CANCELLED' || status === 'EXPIRED') {
+                            clearInterval(pollingInterval);
+                            pollingInterval = null;
+                            clearInterval(timerInterval);
+                            timerInterval = null;
+                            
+                            showToast('⏰ Transaksi ' + status.toLowerCase(), 'warning');
                             resetForm();
-                        }, 10000);
-                    }
-                    else if (status === 'CANCELLED' || status === 'EXPIRED' || status === 'BATAL') {
-                        clearInterval(pollingInterval);
-                        pollingInterval = null;
-                        clearInterval(timerInterval);
-                        timerInterval = null;
-                        
-                        showToast('⏰ Transaksi ' + status.toLowerCase(), 'warning');
-                        resetForm();
+                        }
                     }
                 } catch (error) {
                     console.log('Polling error:', error);
@@ -1013,13 +864,16 @@
 
         // ========== CANCEL TRANSACTION ==========
         async function cancelTransaction() {
-            if (!currentTransaction || !activeBackendUrl || !activeEndpoints.cancel) return;
+            if (!currentTransaction) return;
 
             if (!confirm('Batalkan transaksi ini?')) return;
 
+            const backendUrl = document.getElementById('backendUrl').value;
+
             try {
-                await fetch(`${activeBackendUrl}${activeEndpoints.cancel}${currentTransaction.transactionId}`, {
-                    method: 'POST'
+                await fetch(backendUrl + '/api/qris/cancel/' + currentTransaction.transactionId, {
+                    method: 'POST',
+                    headers: { 'Accept': 'application/json' }
                 });
 
                 showToast('✅ Transaksi dibatalkan', 'success');
@@ -1083,7 +937,6 @@
             document.getElementById('statusBadge').className = 'status-badge badge-pending';
             document.getElementById('spamInfo').style.display = 'none';
             document.getElementById('timerProgress').style.width = '100%';
-            document.getElementById('debugInfo').style.display = 'none';
             
             currentTransaction = null;
             isProcessing = false;
@@ -1123,8 +976,9 @@
 
         // ========== INIT ==========
         document.addEventListener('DOMContentLoaded', () => {
-            checkBackend();
-            setInterval(checkBackend, 30000);
+            // Cek koneksi setiap 5 detik
+            checkConnection();
+            setInterval(checkConnection, 5000);
             
             document.getElementById('amountInput').addEventListener('input', function() {
                 this.style.borderColor = this.value < 2000 ? '#ff8a9f' : '#29355f';
@@ -1137,6 +991,8 @@
             document.getElementById('receiptModal').addEventListener('click', function(e) {
                 if (e.target === this) closeReceipt();
             });
+
+            document.getElementById('backendUrl').addEventListener('change', checkConnection);
         });
     </script>
 </body>
