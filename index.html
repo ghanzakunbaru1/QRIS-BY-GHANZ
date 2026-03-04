@@ -138,6 +138,11 @@
             transform: translateY(-2px);
         }
 
+        .btn-sm {
+            padding: 10px 20px;
+            font-size: 14px;
+        }
+
         .qris-container {
             text-align: center;
             padding: 20px;
@@ -223,11 +228,17 @@
             color: #c62828;
         }
 
+        .status-cancelled {
+            background: #ffebee;
+            color: #c62828;
+        }
+
         .timer {
             font-size: 20px;
             font-weight: bold;
             color: #f44336;
             margin: 10px 0;
+            text-align: center;
         }
 
         .alert {
@@ -247,6 +258,12 @@
             background: #ffebee;
             color: #c62828;
             border: 1px solid #ef9a9a;
+        }
+
+        .alert-info {
+            background: #e3f2fd;
+            color: #0d47a1;
+            border: 1px solid #90caf9;
         }
 
         .button-group {
@@ -278,28 +295,73 @@
         .hidden {
             display: none;
         }
+
+        .info-text {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .merchant-name {
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .quick-amount {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin: 15px 0;
+        }
+
+        .quick-amount button {
+            padding: 10px;
+            background: #f0f0f0;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .quick-amount button:hover {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
     </style>
 </head>
 <body>
     <div class="container" id="app">
         <div class="header">
             <h1>💰 QRIS Payment</h1>
-            <p>Bayar dengan scan QRIS</p>
+            <p>Bayar dengan scan QRIS - <span class="merchant-name">Ghanz625</span></p>
         </div>
 
         <div class="content">
             <!-- Form Input -->
             <div id="formSection">
                 <div class="form-group">
-                    <label>Masukkan Nominal (Min. Rp 2.000)</label>
+                    <label>Masukkan Nominal (Min. Rp 2.000 - Max Rp 10.000.000)</label>
                     <div class="input-wrapper">
                         <span class="prefix">Rp</span>
-                        <input type="number" id="amount" placeholder="20000" min="2000" step="1000">
+                        <input type="number" id="amount" placeholder="20000" min="2000" max="10000000" step="1000">
                     </div>
                 </div>
+
+                <!-- Quick Amount Buttons -->
+                <div class="quick-amount">
+                    <button onclick="setAmount(20000)">Rp 20rb</button>
+                    <button onclick="setAmount(50000)">Rp 50rb</button>
+                    <button onclick="setAmount(100000)">Rp 100rb</button>
+                    <button onclick="setAmount(250000)">Rp 250rb</button>
+                    <button onclick="setAmount(500000)">Rp 500rb</button>
+                    <button onclick="setAmount(1000000)">Rp 1jt</button>
+                </div>
+
                 <button class="btn" id="generateBtn" onclick="generateQRIS()">
                     Generate QRIS
                 </button>
+                <div class="info-text">*Kode unik 100-999 akan ditambahkan otomatis</div>
             </div>
 
             <!-- Loading -->
@@ -324,8 +386,10 @@
                 <div class="transaction-details">
                     <p><strong>ID Transaksi:</strong></p>
                     <p class="id" id="transactionId">-</p>
+                    <p><strong>Merchant:</strong> <span id="merchant">Ghanz625</span></p>
                     <p><strong>Status:</strong> <span class="status-badge status-pending" id="status">PENDING</span></p>
-                    <p><strong>Waktu Expired:</strong> <span id="expiryTime">-</span></p>
+                    <p><strong>Dibuat:</strong> <span id="createdAt">-</span></p>
+                    <p><strong>Expired:</strong> <span id="expiryTime">-</span></p>
                 </div>
 
                 <div class="timer" id="timer"></div>
@@ -340,6 +404,12 @@
                         Baru
                     </button>
                 </div>
+
+                <!-- Testing Section (hanya muncul jika ada parameter test) -->
+                <div id="testingSection" class="hidden" style="margin-top: 20px; padding: 15px; background: #f0f0f0; border-radius: 10px;">
+                    <p style="font-weight: bold; margin-bottom: 10px;">🧪 Mode Testing</p>
+                    <button class="btn btn-sm" onclick="simulatePayment()" style="background: #4caf50;">Simulasi Bayar</button>
+                </div>
             </div>
         </div>
     </div>
@@ -350,12 +420,33 @@
         let statusInterval = null;
         let timerInterval = null;
 
+        // Check if in test mode
+        const urlParams = new URLSearchParams(window.location.search);
+        const isTestMode = urlParams.get('test') === '1';
+
+        // Set amount from quick buttons
+        function setAmount(amount) {
+            document.getElementById('amount').value = amount;
+        }
+
         // Generate QRIS
         async function generateQRIS() {
             const amount = document.getElementById('amount').value;
             
-            if (!amount || amount < 2000) {
+            if (!amount) {
+                showAlert('Masukkan nominal pembayaran', 'error');
+                return;
+            }
+
+            const nominal = parseInt(amount);
+            
+            if (nominal < 2000) {
                 showAlert('Minimal pembayaran Rp 2.000', 'error');
+                return;
+            }
+
+            if (nominal > 10000000) {
+                showAlert('Maksimal pembayaran Rp 10.000.000', 'error');
                 return;
             }
 
@@ -367,7 +458,7 @@
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({ amount: parseInt(amount) })
+                    body: JSON.stringify({ amount: nominal })
                 });
 
                 const result = await response.json();
@@ -376,6 +467,11 @@
                     currentTransaction = result.data;
                     displayQRIS(result.data);
                     startStatusCheck(result.data.transactionId);
+                    
+                    // Show testing section if in test mode
+                    if (isTestMode) {
+                        document.getElementById('testingSection').classList.remove('hidden');
+                    }
                 } else {
                     showAlert(result.message, 'error');
                     showLoading(false);
@@ -393,14 +489,18 @@
             document.getElementById('loadingSection').classList.add('hidden');
             document.getElementById('qrisSection').classList.remove('hidden');
 
-            document.getElementById('totalAmount').textContent = data.amountFormatted;
+            document.getElementById('totalAmount').textContent = data.totalFormatted || data.amountFormatted;
             document.getElementById('uniqueCode').textContent = `Kode Unik: +Rp ${data.uniqueCode}`;
             document.getElementById('qrisImage').src = data.qrImage;
             document.getElementById('transactionId').textContent = data.transactionId;
             document.getElementById('status').textContent = data.status;
             
+            const createdAt = new Date(data.expiresAt);
+            createdAt.setMinutes(createdAt.getMinutes() - 4); // Kurangi 4 menit untuk dapat created at
+            document.getElementById('createdAt').textContent = createdAt.toLocaleString('id-ID');
+            
             const expiryDate = new Date(data.expiresAt);
-            document.getElementById('expiryTime').textContent = expiryDate.toLocaleTimeString('id-ID');
+            document.getElementById('expiryTime').textContent = expiryDate.toLocaleString('id-ID');
 
             startTimer(expiryDate);
         }
@@ -416,7 +516,7 @@
 
                 if (distance < 0) {
                     clearInterval(timerInterval);
-                    document.getElementById('timer').textContent = 'Waktu habis!';
+                    document.getElementById('timer').textContent = '⏰ Waktu habis!';
                     document.getElementById('status').textContent = 'EXPIRED';
                     document.getElementById('status').className = 'status-badge status-expired';
                 } else {
@@ -443,13 +543,20 @@
                         
                         if (status === 'SUCCESS') {
                             document.getElementById('status').className = 'status-badge status-success';
-                            showAlert('✅ Pembayaran berhasil!', 'success');
+                            showAlert('✅ Pembayaran berhasil! Terima kasih', 'success');
                             clearInterval(statusInterval);
                             clearInterval(timerInterval);
                             document.getElementById('cancelBtn').disabled = true;
                         } else if (status === 'EXPIRED') {
                             document.getElementById('status').className = 'status-badge status-expired';
+                            showAlert('⏰ Waktu pembayaran habis', 'error');
                             clearInterval(statusInterval);
+                            document.getElementById('cancelBtn').disabled = true;
+                        } else if (status === 'CANCELLED') {
+                            document.getElementById('status').className = 'status-badge status-cancelled';
+                            clearInterval(statusInterval);
+                            clearInterval(timerInterval);
+                            document.getElementById('cancelBtn').disabled = true;
                         }
                     }
                 } catch (error) {
@@ -462,6 +569,8 @@
         async function cancelTransaction() {
             if (!currentTransaction) return;
 
+            if (!confirm('Yakin ingin membatalkan transaksi ini?')) return;
+
             try {
                 const response = await fetch(`${API_URL}/api/qris/cancel/${currentTransaction.transactionId}`, {
                     method: 'POST'
@@ -470,15 +579,38 @@
                 const result = await response.json();
 
                 if (result.success) {
-                    showAlert('Transaksi dibatalkan', 'success');
+                    showAlert('✅ Transaksi dibatalkan', 'success');
                     document.getElementById('status').textContent = 'CANCELLED';
-                    document.getElementById('status').className = 'status-badge status-expired';
+                    document.getElementById('status').className = 'status-badge status-cancelled';
                     clearInterval(statusInterval);
                     clearInterval(timerInterval);
                     document.getElementById('cancelBtn').disabled = true;
+                } else {
+                    showAlert(result.message, 'error');
                 }
             } catch (error) {
                 showAlert('Gagal membatalkan transaksi', 'error');
+            }
+        }
+
+        // Simulate payment (for testing)
+        async function simulatePayment() {
+            if (!currentTransaction) return;
+
+            try {
+                const response = await fetch(`${API_URL}/api/qris/pay/${currentTransaction.transactionId}`, {
+                    method: 'POST'
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    showAlert('✅ Simulasi pembayaran berhasil', 'success');
+                } else {
+                    showAlert(result.message, 'error');
+                }
+            } catch (error) {
+                showAlert('Gagal simulasi pembayaran', 'error');
             }
         }
 
@@ -491,6 +623,7 @@
             document.getElementById('formSection').classList.remove('hidden');
             document.getElementById('qrisSection').classList.add('hidden');
             document.getElementById('loadingSection').classList.add('hidden');
+            document.getElementById('testingSection').classList.add('hidden');
             document.getElementById('amount').value = '';
             document.getElementById('cancelBtn').disabled = false;
         }
@@ -525,14 +658,29 @@
                 const response = await fetch(`${API_URL}/health`);
                 const data = await response.json();
                 if (data.success) {
-                    console.log('Server OK');
+                    console.log('✅ Server connected:', data.message);
                 }
             } catch (error) {
-                showAlert('Tidak dapat terhubung ke server', 'error');
+                showAlert('⚠️ Tidak dapat terhubung ke server', 'error');
+                console.error('Connection error:', error);
             }
         }
 
+        // Initialize
         checkHealth();
+
+        // Cleanup on page unload
+        window.addEventListener('beforeunload', () => {
+            if (statusInterval) clearInterval(statusInterval);
+            if (timerInterval) clearInterval(timerInterval);
+        });
+
+        // Enter key to generate
+        document.getElementById('amount').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                generateQRIS();
+            }
+        });
     </script>
 </body>
 </html>
