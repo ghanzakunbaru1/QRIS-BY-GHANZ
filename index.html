@@ -3,49 +3,122 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>QRIS Payment - Ghanz625</title>
+    <title>QRIS • Ghanz625</title>
     <style>
+        /* Modern Reset & Variables */
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --secondary: #8b5cf6;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --dark: #1f2937;
+            --gray: #6b7280;
+            --light: #f3f4f6;
+            --white: #ffffff;
+            --shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            --radius: 24px;
+            --radius-sm: 12px;
         }
 
         body {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(145deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 20px;
+            padding: 16px;
         }
 
-        .container {
-            max-width: 500px;
+        /* Container */
+        .card {
+            max-width: 440px;
             width: 100%;
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            padding: 32px 24px;
+            text-align: center;
+            position: relative;
             overflow: hidden;
         }
 
-        .header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 30px;
-            text-align: center;
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            animation: rotate 20s linear infinite;
+        }
+
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
         }
 
         .header h1 {
-            font-size: 28px;
-            margin-bottom: 10px;
+            color: var(--white);
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 4px;
+            letter-spacing: -0.5px;
+            position: relative;
         }
 
+        .header p {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 14px;
+            font-weight: 400;
+            position: relative;
+        }
+
+        .header .merchant {
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 4px 12px;
+            border-radius: 40px;
+            font-size: 12px;
+            font-weight: 500;
+            margin-top: 8px;
+            backdrop-filter: blur(4px);
+        }
+
+        /* Content */
         .content {
-            padding: 30px;
+            padding: 24px;
         }
 
+        /* Form */
         .form-group {
             margin-bottom: 20px;
         }
@@ -53,8 +126,9 @@
         .form-group label {
             display: block;
             margin-bottom: 8px;
-            color: #333;
+            color: var(--dark);
             font-weight: 500;
+            font-size: 14px;
         }
 
         .input-wrapper {
@@ -65,146 +139,278 @@
 
         .input-wrapper .prefix {
             position: absolute;
-            left: 15px;
-            color: #666;
+            left: 16px;
+            color: var(--gray);
             font-weight: 500;
+            font-size: 16px;
+            z-index: 1;
         }
 
         .input-wrapper input {
             width: 100%;
-            padding: 15px;
-            padding-left: 45px;
-            border: 2px solid #e0e0e0;
-            border-radius: 10px;
+            padding: 16px;
+            padding-left: 48px;
+            border: 2px solid var(--light);
+            border-radius: var(--radius-sm);
             font-size: 16px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            background: var(--white);
         }
 
         .input-wrapper input:focus {
             outline: none;
-            border-color: #667eea;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
         }
 
+        /* Quick Amount */
+        .quick-amount {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+
+        .quick-amount button {
+            padding: 10px;
+            background: var(--light);
+            border: none;
+            border-radius: var(--radius-sm);
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--dark);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .quick-amount button:hover {
+            background: var(--primary);
+            color: var(--white);
+            transform: translateY(-2px);
+        }
+
+        /* Button */
         .btn {
             width: 100%;
-            padding: 15px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
+            padding: 16px;
             border: none;
-            border-radius: 10px;
+            border-radius: var(--radius-sm);
             font-size: 16px;
             font-weight: 600;
             cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
         }
 
-        .btn:hover {
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: var(--white);
+            box-shadow: 0 4px 6px -1px rgba(99, 102, 241, 0.4);
+        }
+
+        .btn-primary:hover {
             transform: translateY(-2px);
-            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
-        }
-
-        .btn:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
+            box-shadow: 0 8px 12px -1px rgba(99, 102, 241, 0.5);
         }
 
         .btn-outline {
-            background: white;
-            color: #667eea;
-            border: 2px solid #667eea;
+            background: var(--white);
+            color: var(--primary);
+            border: 2px solid var(--primary);
         }
 
-        .qris-container {
+        .btn-outline:hover {
+            background: var(--light);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Amount Display */
+        .amount-card {
+            background: linear-gradient(135deg, #f0f9ff 0%, #e6f0ff 100%);
+            padding: 24px;
+            border-radius: var(--radius-sm);
+            margin-bottom: 20px;
             text-align: center;
-            padding: 20px;
-            background: #f8f9ff;
-            border-radius: 15px;
-            margin: 20px 0;
+            border: 1px solid rgba(99, 102, 241, 0.2);
         }
 
-        .qris-container img {
-            max-width: 250px;
+        .amount-label {
+            font-size: 13px;
+            color: var(--gray);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }
+
+        .amount-total {
+            font-size: 40px;
+            font-weight: 700;
+            color: var(--primary);
+            line-height: 1.2;
+            margin-bottom: 8px;
+        }
+
+        .unique-code {
+            display: inline-block;
+            background: var(--primary);
+            color: var(--white);
+            padding: 4px 12px;
+            border-radius: 40px;
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        /* QRIS */
+        .qris-card {
+            background: var(--white);
+            padding: 24px;
+            border-radius: var(--radius-sm);
+            margin-bottom: 20px;
+            text-align: center;
+            border: 2px dashed var(--light);
+        }
+
+        .qris-card img {
+            max-width: 220px;
             width: 100%;
             height: auto;
-            margin: 10px 0;
-            border-radius: 10px;
+            margin: 8px auto;
+            display: block;
+            border-radius: var(--radius-sm);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
         }
 
-        .amount-info {
-            background: #e8f5e9;
-            padding: 20px;
-            border-radius: 10px;
-            margin: 15px 0;
-            text-align: center;
+        /* Transaction Details */
+        .details-card {
+            background: var(--light);
+            padding: 16px;
+            border-radius: var(--radius-sm);
+            margin-bottom: 16px;
         }
 
-        .amount-info .total {
-            font-size: 32px;
-            font-weight: bold;
-            color: #2e7d32;
-            margin: 5px 0;
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
         }
 
-        .amount-info .unique-code {
-            background: #ffd54f;
-            padding: 5px 10px;
-            border-radius: 20px;
-            font-weight: bold;
-            display: inline-block;
+        .detail-row:last-child {
+            border-bottom: none;
         }
 
-        .transaction-details {
-            background: #f5f5f5;
-            padding: 15px;
-            border-radius: 10px;
-            margin: 15px 0;
+        .detail-label {
+            color: var(--gray);
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .detail-value {
+            color: var(--dark);
+            font-weight: 600;
             font-size: 14px;
         }
 
+        .transaction-id {
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 12px;
+            background: var(--white);
+            padding: 4px 8px;
+            border-radius: 6px;
+            word-break: break-all;
+        }
+
+        /* Status Badge */
         .status-badge {
             display: inline-block;
-            padding: 5px 15px;
-            border-radius: 20px;
-            font-weight: 500;
+            padding: 4px 12px;
+            border-radius: 40px;
             font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
         }
 
         .status-pending {
-            background: #fff3e0;
-            color: #e65100;
+            background: #fef3c7;
+            color: #d97706;
         }
 
         .status-success {
-            background: #e8f5e9;
-            color: #2e7d32;
+            background: #d1fae5;
+            color: #059669;
         }
 
+        .status-expired {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+
+        .status-cancelled {
+            background: #f3f4f6;
+            color: #4b5563;
+        }
+
+        /* Timer */
         .timer {
-            font-size: 20px;
-            font-weight: bold;
-            color: #f44336;
-            margin: 10px 0;
             text-align: center;
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--danger);
+            margin: 16px 0;
+            padding: 12px;
+            background: #fee2e2;
+            border-radius: var(--radius-sm);
         }
 
+        /* Alert */
         .alert {
-            padding: 15px;
-            border-radius: 10px;
-            margin: 15px 0;
+            padding: 12px 16px;
+            border-radius: var(--radius-sm);
+            margin: 16px 0;
             display: none;
+            font-size: 14px;
+            font-weight: 500;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         .alert-success {
-            background: #e8f5e9;
-            color: #2e7d32;
+            background: #d1fae5;
+            color: #065f46;
+            border: 1px solid #a7f3d0;
         }
 
         .alert-error {
-            background: #ffebee;
-            color: #c62828;
+            background: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #fecaca;
         }
 
+        /* Button Group */
         .button-group {
             display: flex;
-            gap: 10px;
+            gap: 12px;
             margin-top: 20px;
         }
 
@@ -212,14 +418,20 @@
             flex: 1;
         }
 
+        /* Loading */
         .loading {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 3px solid #f3f3f3;
-            border-top: 3px solid #667eea;
+            text-align: center;
+            padding: 40px;
+        }
+
+        .spinner {
+            width: 48px;
+            height: 48px;
+            border: 4px solid var(--light);
+            border-top: 4px solid var(--primary);
             border-radius: 50%;
             animation: spin 1s linear infinite;
+            margin: 0 auto 16px;
         }
 
         @keyframes spin {
@@ -227,82 +439,109 @@
             100% { transform: rotate(360deg); }
         }
 
-        .hidden {
-            display: none;
+        /* Info Text */
+        .info-text {
+            font-size: 12px;
+            color: var(--gray);
+            margin-top: 8px;
+            text-align: center;
         }
 
-        .debug-box {
-            background: #000;
-            color: #0f0;
-            padding: 10px;
-            border-radius: 5px;
-            font-family: monospace;
-            font-size: 12px;
-            margin-top: 10px;
-            max-height: 200px;
-            overflow: auto;
+        /* Utility */
+        .hidden {
+            display: none;
         }
     </style>
 </head>
 <body>
-    <div class="container">
+    <div class="card">
         <div class="header">
-            <h1>💰 QRIS Payment</h1>
-            <p>Bayar dengan scan QRIS - Ghanz625</p>
+            <h1>QRIS Payment</h1>
+            <p>Scan untuk membayar</p>
+            <span class="merchant">🏪 Ghanz625 Official</span>
         </div>
 
         <div class="content">
-            <!-- Form Input -->
+            <!-- Form Section -->
             <div id="formSection">
                 <div class="form-group">
-                    <label>Masukkan Nominal (Min. Rp 2.000)</label>
+                    <label>Masukkan Nominal</label>
                     <div class="input-wrapper">
                         <span class="prefix">Rp</span>
-                        <input type="number" id="amount" placeholder="20000" min="2000" value="20000">
+                        <input type="number" id="amount" placeholder="20.000" min="2000" value="20000">
                     </div>
                 </div>
-                <button class="btn" id="generateBtn" onclick="generateQRIS()">
-                    Generate QRIS
+
+                <div class="quick-amount">
+                    <button onclick="setAmount(20000)">20rb</button>
+                    <button onclick="setAmount(50000)">50rb</button>
+                    <button onclick="setAmount(100000)">100rb</button>
+                    <button onclick="setAmount(250000)">250rb</button>
+                    <button onclick="setAmount(500000)">500rb</button>
+                    <button onclick="setAmount(1000000)">1jt</button>
+                </div>
+
+                <button class="btn btn-primary" onclick="generateQRIS()">
+                    <span>✨</span> Generate QRIS
                 </button>
+                <div class="info-text">Minimal Rp 2.000 • Maksimal Rp 10.000.000</div>
+                <div class="info-text">✨ Kode unik 100-999 akan ditambahkan</div>
             </div>
 
-            <!-- Loading -->
-            <div id="loadingSection" class="hidden" style="text-align: center; padding: 40px;">
-                <div class="loading" style="width: 40px; height: 40px;"></div>
-                <p style="margin-top: 15px;">Memproses...</p>
+            <!-- Loading Section -->
+            <div id="loadingSection" class="loading hidden">
+                <div class="spinner"></div>
+                <p style="color: var(--gray);">Memproses transaksi...</p>
             </div>
 
-            <!-- QRIS Display -->
+            <!-- QRIS Section -->
             <div id="qrisSection" class="hidden">
-                <div class="amount-info">
-                    <small>Total Pembayaran</small>
-                    <div class="total" id="totalAmount">Rp 0</div>
+                <!-- Amount Card -->
+                <div class="amount-card">
+                    <div class="amount-label">Total Pembayaran</div>
+                    <div class="amount-total" id="totalAmount">Rp 0</div>
                     <div class="unique-code" id="uniqueCode"></div>
                 </div>
 
-                <div class="qris-container">
+                <!-- QRIS Card -->
+                <div class="qris-card">
                     <img id="qrisImage" src="" alt="QRIS Code">
+                    <div style="margin-top: 8px; font-size: 13px; color: var(--gray);">Scan dengan aplikasi pembayaran</div>
                 </div>
 
-                <div class="transaction-details">
-                    <p><strong>ID:</strong> <span id="transactionId">-</span></p>
-                    <p><strong>Status:</strong> <span class="status-badge status-pending" id="status">PENDING</span></p>
-                    <p><strong>Expired:</strong> <span id="expiryTime">-</span></p>
+                <!-- Details Card -->
+                <div class="details-card">
+                    <div class="detail-row">
+                        <span class="detail-label">ID Transaksi</span>
+                        <span class="transaction-id" id="transactionId">-</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Status</span>
+                        <span class="status-badge status-pending" id="status">PENDING</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Merchant</span>
+                        <span class="detail-value">Ghanz625</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Expired</span>
+                        <span class="detail-value" id="expiryTime">-</span>
+                    </div>
                 </div>
 
+                <!-- Timer -->
                 <div class="timer" id="timer"></div>
-                
-                <!-- Debug Box -->
-                <div class="debug-box" id="debugBox"></div>
 
+                <!-- Alert -->
                 <div class="alert" id="alert"></div>
 
+                <!-- Action Buttons -->
                 <div class="button-group">
                     <button class="btn btn-outline" onclick="cancelTransaction()" id="cancelBtn">
-                        Batal
+                        ✕ Batal
                     </button>
-                    <button class="btn" onclick="newTransaction()">
-                        Baru
+                    <button class="btn btn-primary" onclick="newTransaction()">
+                        ↺ Baru
                     </button>
                 </div>
             </div>
@@ -310,114 +549,102 @@
     </div>
 
     <script>
-        // Ganti dengan IP VPS kamu
+        // Configuration - Gunakan IP VPS
         const API_URL = 'http://157.230.255.221:2003';
         let currentTransaction = null;
         let statusInterval = null;
         let timerInterval = null;
 
-        // Debug function
-        function debug(message, data = null) {
-            const debugBox = document.getElementById('debugBox');
-            const timestamp = new Date().toLocaleTimeString();
-            let logMessage = `[${timestamp}] ${message}`;
-            
-            if (data) {
-                if (typeof data === 'object') {
-                    logMessage += `\n${JSON.stringify(data, null, 2)}`;
-                } else {
-                    logMessage += `\n${data}`;
-                }
-            }
-            
-            debugBox.innerHTML += logMessage + '\n\n';
-            debugBox.scrollTop = debugBox.scrollHeight;
-            
-            console.log(`[DEBUG] ${message}`, data);
+        // Set amount from quick buttons
+        function setAmount(amount) {
+            document.getElementById('amount').value = amount;
         }
 
         // Generate QRIS
         async function generateQRIS() {
-            const amount = document.getElementById('amount').value;
+            const amountInput = document.getElementById('amount');
+            const amount = amountInput.value.trim();
             
-            debug('Generate QRIS clicked', { amount });
-
             if (!amount) {
-                showAlert('Masukkan nominal', 'error');
+                showAlert('Masukkan nominal pembayaran', 'error');
                 return;
             }
 
             const nominal = parseInt(amount);
             
-            if (nominal < 2000) {
-                showAlert('Minimal Rp 2.000', 'error');
+            if (isNaN(nominal) || nominal < 2000) {
+                showAlert('Minimal pembayaran Rp 2.000', 'error');
                 return;
             }
 
-            showLoading(true);
-            debug('Sending request to server...');
+            if (nominal > 10000000) {
+                showAlert('Maksimal pembayaran Rp 10.000.000', 'error');
+                return;
+            }
+
+            // Show loading
+            document.getElementById('formSection').classList.add('hidden');
+            document.getElementById('loadingSection').classList.remove('hidden');
 
             try {
-                const requestData = { amount: nominal };
-                debug('Request data:', requestData);
-
                 const response = await fetch(`${API_URL}/api/qris/create`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                         'Accept': 'application/json'
                     },
-                    body: JSON.stringify(requestData)
+                    body: JSON.stringify({ amount: nominal })
                 });
 
-                debug('Response status:', response.status);
-                
-                const responseText = await response.text();
-                debug('Raw response:', responseText);
-
-                let result;
-                try {
-                    result = JSON.parse(responseText);
-                    debug('Parsed response:', result);
-                } catch (e) {
-                    debug('Failed to parse JSON:', e.message);
-                    showAlert('Server error: Invalid response', 'error');
-                    showLoading(false);
-                    return;
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
                 }
 
-                if (result.success) {
+                const result = await response.json();
+
+                if (result.success && result.data) {
                     currentTransaction = result.data;
                     displayQRIS(result.data);
                     startStatusCheck(result.data.transactionId);
-                    debug('QRIS generated successfully', result.data);
                 } else {
-                    showAlert(result.message || 'Gagal generate QRIS', 'error');
-                    debug('Server returned error:', result);
-                    showLoading(false);
+                    throw new Error(result.message || 'Gagal membuat QRIS');
                 }
             } catch (error) {
-                debug('Network/Connection error:', error.message);
-                showAlert('Gagal terhubung ke server: ' + error.message, 'error');
-                showLoading(false);
+                console.error('Error:', error);
+                showAlert(error.message, 'error');
+                
+                // Kembali ke form
+                document.getElementById('formSection').classList.remove('hidden');
+                document.getElementById('loadingSection').classList.add('hidden');
             }
         }
 
         // Display QRIS
         function displayQRIS(data) {
-            document.getElementById('formSection').classList.add('hidden');
+            // Hide loading, show QRIS section
             document.getElementById('loadingSection').classList.add('hidden');
             document.getElementById('qrisSection').classList.remove('hidden');
 
+            // Set values
             document.getElementById('totalAmount').textContent = data.totalFormatted || data.amountFormatted;
             document.getElementById('uniqueCode').textContent = `Kode Unik: +Rp ${data.uniqueCode}`;
             document.getElementById('qrisImage').src = data.qrImage;
             document.getElementById('transactionId').textContent = data.transactionId;
-            document.getElementById('status').textContent = data.status;
             
+            // Update status
+            const statusEl = document.getElementById('status');
+            statusEl.textContent = data.status;
+            statusEl.className = `status-badge status-${data.status.toLowerCase()}`;
+            
+            // Set expiry
             const expiryDate = new Date(data.expiresAt);
-            document.getElementById('expiryTime').textContent = expiryDate.toLocaleTimeString('id-ID');
+            document.getElementById('expiryTime').textContent = expiryDate.toLocaleString('id-ID', {
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            });
 
+            // Start timer
             startTimer(expiryDate);
         }
 
@@ -432,45 +659,61 @@
 
                 if (distance < 0) {
                     clearInterval(timerInterval);
-                    document.getElementById('timer').textContent = 'Waktu habis!';
+                    document.getElementById('timer').textContent = '⏰ Waktu pembayaran habis';
+                    
+                    // Update status jika perlu
+                    if (currentTransaction) {
+                        checkStatus(currentTransaction.transactionId);
+                    }
                 } else {
                     const minutes = Math.floor(distance / (1000 * 60));
                     const seconds = Math.floor((distance % (1000 * 60)) / 1000);
                     document.getElementById('timer').textContent = 
-                        `⏰ Sisa: ${minutes}:${seconds.toString().padStart(2, '0')}`;
+                        `⏱️ Sisa waktu: ${minutes}:${seconds.toString().padStart(2, '0')}`;
                 }
             }, 1000);
         }
 
         // Check status
+        async function checkStatus(transactionId) {
+            try {
+                const response = await fetch(`${API_URL}/api/qris/status/${transactionId}`);
+                const result = await response.json();
+
+                if (result.success && result.data) {
+                    const status = result.data.status;
+                    const statusEl = document.getElementById('status');
+                    
+                    statusEl.textContent = status;
+                    statusEl.className = `status-badge status-${status.toLowerCase()}`;
+                    
+                    if (status === 'SUCCESS') {
+                        showAlert('✅ Pembayaran berhasil! Terima kasih', 'success');
+                        clearInterval(statusInterval);
+                        clearInterval(timerInterval);
+                        document.getElementById('cancelBtn').disabled = true;
+                    } else if (status === 'EXPIRED') {
+                        showAlert('⏰ Waktu pembayaran telah habis', 'error');
+                        clearInterval(statusInterval);
+                        document.getElementById('cancelBtn').disabled = true;
+                    }
+                }
+            } catch (error) {
+                console.error('Status check error:', error);
+            }
+        }
+
+        // Start status check interval
         function startStatusCheck(transactionId) {
             if (statusInterval) clearInterval(statusInterval);
-
-            statusInterval = setInterval(async () => {
-                try {
-                    const response = await fetch(`${API_URL}/api/qris/status/${transactionId}`);
-                    const result = await response.json();
-
-                    if (result.success) {
-                        const status = result.data.status;
-                        document.getElementById('status').textContent = status;
-                        
-                        if (status === 'SUCCESS') {
-                            document.getElementById('status').className = 'status-badge status-success';
-                            showAlert('✅ Pembayaran berhasil!', 'success');
-                            clearInterval(statusInterval);
-                            clearInterval(timerInterval);
-                        }
-                    }
-                } catch (error) {
-                    console.error('Status check error:', error);
-                }
-            }, 3000);
+            statusInterval = setInterval(() => checkStatus(transactionId), 3000);
         }
 
         // Cancel transaction
         async function cancelTransaction() {
             if (!currentTransaction) return;
+
+            if (!confirm('Yakin ingin membatalkan transaksi ini?')) return;
 
             try {
                 const response = await fetch(`${API_URL}/api/qris/cancel/${currentTransaction.transactionId}`, {
@@ -481,37 +724,41 @@
 
                 if (result.success) {
                     showAlert('Transaksi dibatalkan', 'success');
-                    document.getElementById('status').textContent = 'CANCELLED';
+                    
+                    const statusEl = document.getElementById('status');
+                    statusEl.textContent = 'CANCELLED';
+                    statusEl.className = 'status-badge status-cancelled';
+                    
                     clearInterval(statusInterval);
                     clearInterval(timerInterval);
+                    document.getElementById('cancelBtn').disabled = true;
+                } else {
+                    showAlert(result.message, 'error');
                 }
             } catch (error) {
-                showAlert('Gagal membatalkan', 'error');
+                showAlert('Gagal membatalkan transaksi', 'error');
             }
         }
 
         // New transaction
         function newTransaction() {
+            // Clear intervals
             if (statusInterval) clearInterval(statusInterval);
             if (timerInterval) clearInterval(timerInterval);
             
+            // Reset
             currentTransaction = null;
+            
+            // Show form
             document.getElementById('formSection').classList.remove('hidden');
             document.getElementById('qrisSection').classList.add('hidden');
             document.getElementById('loadingSection').classList.add('hidden');
-            document.getElementById('debugBox').innerHTML = ''; // Clear debug
-        }
-
-        // Show loading
-        function showLoading(show) {
-            if (show) {
-                document.getElementById('formSection').classList.add('hidden');
-                document.getElementById('loadingSection').classList.remove('hidden');
-                document.getElementById('qrisSection').classList.add('hidden');
-            } else {
-                document.getElementById('loadingSection').classList.add('hidden');
-                document.getElementById('formSection').classList.remove('hidden');
-            }
+            
+            // Reset amount
+            document.getElementById('amount').value = '20000';
+            
+            // Enable cancel button
+            document.getElementById('cancelBtn').disabled = false;
         }
 
         // Show alert
@@ -528,17 +775,27 @@
 
         // Test connection on load
         async function testConnection() {
-            debug('Testing connection to server...');
             try {
                 const response = await fetch(`${API_URL}/health`);
-                const text = await response.text();
-                debug('Health check response:', text);
+                if (response.ok) {
+                    console.log('✅ Connected to server');
+                } else {
+                    console.warn('⚠️ Server connection issue');
+                }
             } catch (error) {
-                debug('Health check failed:', error.message);
+                console.error('❌ Cannot connect to server:', error.message);
+                showAlert('Tidak dapat terhubung ke server', 'error');
             }
         }
 
-        // Run test on load
+        // Enter key to generate
+        document.getElementById('amount').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                generateQRIS();
+            }
+        });
+
+        // Test connection on load
         testConnection();
     </script>
 </body>
